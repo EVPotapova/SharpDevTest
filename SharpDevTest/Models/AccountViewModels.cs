@@ -27,6 +27,8 @@ namespace SharpDevTest.Models
 
     public class UserInfoViewModel
     {
+        public decimal PwCoins { get; set; }
+
         public string Email { get; set; }
 
         public bool HasRegistered { get; set; }
