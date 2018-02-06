@@ -33,19 +33,5 @@ namespace SharpDevTest.Models
         }
     }
 
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
-    {
-        public ApplicationDbContext()
-            : base("PwTestConnection", throwIfV1Schema: false)
-        {
-        }
-        
-        public static ApplicationDbContext Create()
-        {
-            return new ApplicationDbContext();
-        }
-
-
-        public DbSet<TransactionDbModel> Transactions { get; set; }
-    }
+    
 }

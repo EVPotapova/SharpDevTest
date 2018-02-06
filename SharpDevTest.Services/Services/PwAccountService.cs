@@ -44,7 +44,7 @@ namespace SharpDevTest.Services.Services
 
             if (filter.RecipientId != null)
             {
-                query = query.Where(t => t.RecipientId == filter.RecipientId);
+                query = query.Where(t => t.RecipientId.Equals(filter.RecipientId.ToString(),StringComparison.InvariantCultureIgnoreCase));
             }
             if (filter.TransactionDate != null)
             {
@@ -87,8 +87,8 @@ namespace SharpDevTest.Services.Services
                 {
                     var dbTransaction = new TransactionDbModel
                     {
-                        SenderId = transaction.SenderId,
-                        RecipientId = transaction.RecipientId,
+                        SenderId = transaction.SenderId.ToString(),
+                        RecipientId = transaction.RecipientId.ToString(),
                         PwAmount = transaction.PwAmount
                     };
 

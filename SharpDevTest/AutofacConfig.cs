@@ -29,9 +29,8 @@ namespace SharpDevTest
             //Register your Web API controllers.  
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
 
-            builder.RegisterGeneric(typeof(PwAccountService))
-                   .As(typeof(IPwAccountService))
-                   .InstancePerRequest();
+            builder.RegisterType<PwAccountService>().As<IPwAccountService>().PropertiesAutowired().SingleInstance();
+
 
             builder.RegisterType<ApplicationDbContext>().As<System.Data.Entity.DbContext>();
 

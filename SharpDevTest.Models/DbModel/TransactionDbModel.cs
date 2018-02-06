@@ -6,8 +6,8 @@ namespace SharpDevTest.Models.DbModel
     public class TransactionDbModel
     {
         public Guid Id { get; set; }
-        public Guid SenderId { get; set; }
-        public Guid RecipientId { get; set; }
+        public string SenderId { get; set; }
+        public string RecipientId { get; set; }
         public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
         public decimal PwAmount { get; set; }
 
