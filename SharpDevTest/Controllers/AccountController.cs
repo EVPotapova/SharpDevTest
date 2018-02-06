@@ -12,7 +12,6 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using SharpDevTest.Models;
 using SharpDevTest.Services.Interfaces;
-using SharpDevTest.Models.DbModel;
 
 namespace SharpDevTest.Controllers
 {
@@ -58,6 +57,7 @@ namespace SharpDevTest.Controllers
 
             return new UserInfoViewModel
             {
+
                 PwCoins = total,
                 Email = userName,
                 HasRegistered = externalLogin == null,
