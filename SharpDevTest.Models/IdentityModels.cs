@@ -1,9 +1,9 @@
 ﻿using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Identity;
+using SharpDevTest.Models.DbModel;
 using Microsoft.AspNet.Identity.EntityFramework;
 using System.Data.Entity;
-using SharpDevTest.Models.DbModel;
+using Microsoft.AspNet.Identity;
 
 namespace SharpDevTest.Models
 {
@@ -34,6 +34,5 @@ namespace SharpDevTest.Models
 
 
         public DbSet<TransactionDbModel> Transactions { get; set; }
-        //public DbSet<PWAccountDbModel> PWAccounts { get; set; }
     }
 }

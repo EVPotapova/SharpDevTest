@@ -233,9 +233,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\AccountBindingModels.cs" />
-    <Compile Include="Models\AccountViewModels.cs" />
-    <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
@@ -316,7 +313,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SharpDevTest.Models\SharpDevTest.Models.csproj">
-      <Project>{c00f21de-2f14-4c95-98c1-aed993cf2e26}</Project>
+      <Project>{576722b1-8231-4bbe-8192-a4e7d8c2de89}</Project>
       <Name>SharpDevTest.Models</Name>
     </ProjectReference>
     <ProjectReference Include="..\SharpDevTest.Services\SharpDevTest.Services.csproj">

@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SharpDevTest.Models\SharpDevTest.Models.csproj">
-      <Project>{C00F21DE-2F14-4C95-98C1-AED993CF2E26}</Project>
+      <Project>{576722B1-8231-4BBE-8192-A4E7D8C2DE89}</Project>
       <Name>SharpDevTest.Models</Name>
     </ProjectReference>
   </ItemGroup>

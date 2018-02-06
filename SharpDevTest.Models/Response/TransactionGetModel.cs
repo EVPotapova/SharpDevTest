@@ -1,12 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SharpDevTest.Models.Response
 {
     public class TransactionGetModel
     {
+        public Guid Id { get; set; }
+        public DateTime TransactionDate { get; set; }
+        public decimal PwAmount { get; set; }
+
+        public virtual ApplicationUser Sender { get; set; }
+        public virtual ApplicationUser Recipient { get; set; }
     }
 }
