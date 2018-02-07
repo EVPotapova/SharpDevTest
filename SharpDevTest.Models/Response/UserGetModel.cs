@@ -7,8 +7,6 @@ namespace SharpDevTest.Models.Response
     {
         public string Id { get; set; }
         public decimal PwCoins { get; set; }
-        
-
         public string FullName { get; set; }
     }
     

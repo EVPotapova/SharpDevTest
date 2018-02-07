@@ -58,7 +58,7 @@ namespace SharpDevTest.Controllers
             TransactionGetModel res = null;
             try
             {
-                res = await PwService.PostNewTransaction(newTransaction);
+                res = await PwService.PostNewTransaction(newTransaction, User.Identity.Name);
             }
             catch (Exception ex)
             {
