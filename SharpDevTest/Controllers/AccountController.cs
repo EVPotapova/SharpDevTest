@@ -12,22 +12,25 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using SharpDevTest.Models;
 using SharpDevTest.Services.Interfaces;
+using SharpDevTest.Models.Request;
+using SharpDevTest.Models.Response;
+using System.Net;
+using SharpDevTest.Models.Filters;
 
 namespace SharpDevTest.Controllers
 {
     [Authorize]
     [RoutePrefix("api/Account")]
-    public class AccountController : ApiController
+    public class AccountController : BaseApiController
     {
-        private const string LocalLoginProvider = "Local";
         private ApplicationUserManager _userManager;
         private IPwAccountService PwAccountService;
-        
-        public AccountController(ApplicationUserManager userManager,
-            ISecureDataFormat<AuthenticationTicket> accessTokenFormat, IPwAccountService pwAccountService)
+
+
+
+        public AccountController(ApplicationUserManager userManager, IPwAccountService pwAccountService)
         {
             UserManager = userManager;
-            AccessTokenFormat = accessTokenFormat;
             PwAccountService = pwAccountService;
         }
 
@@ -43,26 +46,30 @@ namespace SharpDevTest.Controllers
             }
         }
 
-        public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; private set; }
-
-        // GET api/Account/UserInfo
-        [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
-        [Route("UserInfo")]
-        public async Task<UserInfoViewModel> GetUserInfo()
+        [Route("Users")]
+        public async Task<UserGetListModel> GetUserList([FromUri]UserFilter filter)
         {
-            ExternalLoginData externalLogin = ExternalLoginData.FromIdentity(User.Identity as ClaimsIdentity);
-
-            string userName = User.Identity.GetUserName();
-            decimal total = await PwAccountService.GetUserTotalAsync(userName);
-
-            return new UserInfoViewModel
+            try
             {
+                return await PwAccountService.GetUsersByFilter(filter);
+            }
+            catch (Exception ex)
+            {
+                throw CreateThrow500(ex.Message);
+            }
 
-                PwCoins = total,
-                Email = userName,
-                HasRegistered = externalLogin == null,
-                LoginProvider = externalLogin != null ? externalLogin.LoginProvider : null
-            };
+        }
+
+        [Route("CurrentUser")]
+        public async Task<UserGetModel> GetCurrentUser()
+        {
+            string userName = User.Identity.GetUserName();
+
+            var res = await PwAccountService.GetUserByUsername(userName);
+            if (res == null)
+                throw CreateThrow4Xx(HttpStatusCode.NotFound, "User is not found.");
+
+            return res;
         }
 
         // POST api/Account/Logout
@@ -75,15 +82,16 @@ namespace SharpDevTest.Controllers
 
         // POST api/Account/Register
         [AllowAnonymous]
+        [HttpPost]
         [Route("Register")]
-        public async Task<IHttpActionResult> Register(RegisterBindingModel model)
+        public async Task<IHttpActionResult> AddNewUserAsync(UserPostModel model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email, PwCoins = 500M }; //TODO: unhardcode start value
+            var user = new ApplicationUser() { UserName = model.Email, FullName = model.FullName, Email = model.Email, PwCoins = 500M }; //TODO: unhardcode start value
 
             IdentityResult result = await UserManager.CreateAsync(user, model.Password);
 
@@ -95,7 +103,7 @@ namespace SharpDevTest.Controllers
             return Ok();
         }
 
-       
+
 
         protected override void Dispose(bool disposing)
         {
@@ -142,75 +150,6 @@ namespace SharpDevTest.Controllers
             }
 
             return null;
-        }
-
-        private class ExternalLoginData
-        {
-            public string LoginProvider { get; set; }
-            public string ProviderKey { get; set; }
-            public string UserName { get; set; }
-
-            public IList<Claim> GetClaims()
-            {
-                IList<Claim> claims = new List<Claim>();
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, ProviderKey, null, LoginProvider));
-
-                if (UserName != null)
-                {
-                    claims.Add(new Claim(ClaimTypes.Name, UserName, null, LoginProvider));
-                }
-
-                return claims;
-            }
-
-            public static ExternalLoginData FromIdentity(ClaimsIdentity identity)
-            {
-                if (identity == null)
-                {
-                    return null;
-                }
-
-                Claim providerKeyClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
-
-                if (providerKeyClaim == null || String.IsNullOrEmpty(providerKeyClaim.Issuer)
-                    || String.IsNullOrEmpty(providerKeyClaim.Value))
-                {
-                    return null;
-                }
-
-                if (providerKeyClaim.Issuer == ClaimsIdentity.DefaultIssuer)
-                {
-                    return null;
-                }
-
-                return new ExternalLoginData
-                {
-                    LoginProvider = providerKeyClaim.Issuer,
-                    ProviderKey = providerKeyClaim.Value,
-                    UserName = identity.FindFirstValue(ClaimTypes.Name)
-                };
-            }
-        }
-
-        private static class RandomOAuthStateGenerator
-        {
-            private static RandomNumberGenerator _random = new RNGCryptoServiceProvider();
-
-            public static string Generate(int strengthInBits)
-            {
-                const int bitsPerByte = 8;
-
-                if (strengthInBits % bitsPerByte != 0)
-                {
-                    throw new ArgumentException("strengthInBits must be evenly divisible by 8.", "strengthInBits");
-                }
-
-                int strengthInBytes = strengthInBits / bitsPerByte;
-
-                byte[] data = new byte[strengthInBytes];
-                _random.GetBytes(data);
-                return HttpServerUtility.UrlTokenEncode(data);
-            }
         }
 
         #endregion

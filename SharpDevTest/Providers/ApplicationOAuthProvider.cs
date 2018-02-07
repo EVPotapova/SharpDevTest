@@ -16,22 +16,21 @@ namespace SharpDevTest.Providers
     public class ApplicationOAuthProvider : OAuthAuthorizationServerProvider
     {
         private readonly string _publicClientId;
+        private ApplicationUserManager _userManager;
 
-        public ApplicationOAuthProvider(string publicClientId)
+        public ApplicationOAuthProvider(string publicClientId, ApplicationUserManager userManager)
         {
             if (publicClientId == null)
             {
                 throw new ArgumentNullException("publicClientId");
             }
-
+            _userManager = userManager;
             _publicClientId = publicClientId;
         }
 
         public override async Task GrantResourceOwnerCredentials(OAuthGrantResourceOwnerCredentialsContext context)
         {
-            var userManager = context.OwinContext.GetUserManager<ApplicationUserManager>();
-
-            ApplicationUser user = await userManager.FindAsync(context.UserName, context.Password);
+            ApplicationUser user = await _userManager.FindAsync(context.UserName, context.Password);
 
             if (user == null)
             {
@@ -39,9 +38,9 @@ namespace SharpDevTest.Providers
                 return;
             }
 
-            ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(userManager,
+            ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(_userManager,
                OAuthDefaults.AuthenticationType);
-            ClaimsIdentity cookiesIdentity = await user.GenerateUserIdentityAsync(userManager,
+            ClaimsIdentity cookiesIdentity = await user.GenerateUserIdentityAsync(_userManager,
                 CookieAuthenticationDefaults.AuthenticationType);
 
             AuthenticationProperties properties = CreateProperties(user.UserName);

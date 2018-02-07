@@ -8,6 +8,7 @@ using SharpDevTest.Models.Response;
 using SharpDevTest.Models.DbModel;
 using SharpDevTest.Models;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace SharpDevTest.Services.Services
 {
@@ -44,7 +45,7 @@ namespace SharpDevTest.Services.Services
 
             if (filter.RecipientId != null)
             {
-                query = query.Where(t => t.RecipientId.Equals(filter.RecipientId.ToString(),StringComparison.InvariantCultureIgnoreCase));
+                query = query.Where(t => t.RecipientId.Equals(filter.RecipientId.ToString(), StringComparison.InvariantCultureIgnoreCase));
             }
             if (filter.TransactionDate != null)
             {
@@ -74,8 +75,21 @@ namespace SharpDevTest.Services.Services
                     Items = items
                 };
             }
-            return new TransactionGetListModel();//Empty result
+            return new TransactionGetListModel { TotalItemsCount=0, Items = new List<TransactionGetModel>()};//Empty result
 
+        }
+        public async Task<UserGetModel> GetUserByUsername(string userName)
+        {
+            ApplicationUser res = await DbContext.Set<ApplicationUser>().FirstOrDefaultAsync(u => u.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase));
+            if (res != null)
+            {
+                return new UserGetModel
+                {
+                    FullName = res.FullName,
+                    PwCoins = res.PwCoins
+                };
+            }
+            return null;
         }
 
         public async Task<TransactionGetModel> PostNewTransaction(TransactionPostModel transaction)
@@ -110,6 +124,37 @@ namespace SharpDevTest.Services.Services
         public async Task<decimal> GetUserTotalAsync(string userName)
         {
             return await DbContext.Set<ApplicationUser>().Where(u => u.Email.Equals(userName, StringComparison.InvariantCultureIgnoreCase)).Select(u => u.PwCoins).FirstOrDefaultAsync();
+        }
+
+        public async Task<UserGetListModel> GetUsersByFilter(UserFilter filter)
+        {
+            if (filter == null)
+                filter = new UserFilter();
+
+            IQueryable<ApplicationUser> query = DbContext.Set<ApplicationUser>();
+
+            if (filter.FullName != null)
+            {
+                query = query.Where(t => t.FullName.Contains(filter.FullName));
+            }
+
+
+            var items = await query.OrderByDescending(t => t.Id).Select(dbModel => new UserGetModel
+            {
+                Id = dbModel.Id,
+                PwCoins = dbModel.PwCoins,
+                FullName = dbModel.FullName
+            }).ToListAsync();
+
+            if (items != null && items.Any())
+            {
+                return new UserGetListModel
+                {
+                    TotalItemsCount = items.Count,
+                    Items = items
+                };
+            }
+            return new UserGetListModel { TotalItemsCount = 0, Items = new List<UserGetModel>() };//Empty result
         }
     }
 }

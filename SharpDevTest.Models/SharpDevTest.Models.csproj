@@ -53,14 +53,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AccountBindingModels.cs" />
-    <Compile Include="AccountViewModels.cs" />
+    <Compile Include="Filters\UserFilter.cs" />
+    <Compile Include="Response\UserGetListModel.cs" />
+    <Compile Include="Response\UserGetModel.cs" />
     <Compile Include="DbModel\TransactionDbModel.cs" />
     <Compile Include="Filters\TransactionFilter.cs" />
-    <Compile Include="IdentityModels.cs" />
+    <Compile Include="DbModel\ApplicationUser.cs" />
     <Compile Include="ListResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Request\TransactionPostModel.cs" />
+    <Compile Include="Request\UserPostModel.cs" />
     <Compile Include="Response\TransactionGetListModel.cs" />
     <Compile Include="Response\TransactionGetModel.cs" />
   </ItemGroup>
