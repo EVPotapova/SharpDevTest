@@ -24,20 +24,23 @@ namespace SharpDevTest.Services.Services
         {
             var dbModel = await DbContext.Set<TransactionDbModel>().Include(t => t.Sender).Include(t => t.Recipient).FirstOrDefaultAsync(t => t.Id == id);
 
+
             return dbModel == null ? null : new TransactionGetModel
             {
                 Id = dbModel.Id,
                 PwAmount = dbModel.PwAmount,
-                Sender = new UserGetModel { FullName = dbModel.Sender.FullName, Id = dbModel.Sender.Id, PwCoins = dbModel.Sender.PwCoins},
+                Sender = new UserGetModel { FullName = dbModel.Sender.FullName, Id = dbModel.Sender.Id, PwCoins = dbModel.Sender.PwCoins },
                 Recipient = new UserGetModel { FullName = dbModel.Recipient.FullName, Id = dbModel.Recipient.Id, PwCoins = dbModel.Recipient.PwCoins },
                 TransactionDate = dbModel.TransactionDate
 
             };//TODO: Здесь можно в большем проекте использовать Automapper
         }
-        public async Task<TransactionGetListModel> GetTransactionsListAsync(TransactionFilter filter)
+        public async Task<TransactionGetListModel> GetTransactionsListAsync(TransactionFilter filter, string userName)
         {
             if (filter == null)
                 filter = new TransactionFilter();
+
+            var currentUser = await GetUserByUsername(userName);
 
             var query = DbContext.Set<TransactionDbModel>().Include(t => t.Sender).Include(t => t.Recipient);
 
@@ -47,7 +50,6 @@ namespace SharpDevTest.Services.Services
             }
             if (filter.TransactionDate != null)
             {
-
                 query = query.Where(t => t.TransactionDate == filter.TransactionDate);
             }
             if (filter.PwAmount != null)
@@ -60,10 +62,10 @@ namespace SharpDevTest.Services.Services
             {
                 Id = dbModel.Id,
                 PwAmount = dbModel.PwAmount,
-                Sender = new UserGetModel { FullName = dbModel.Sender.FullName, Id = dbModel.Sender.Id, PwCoins = dbModel.Sender.PwCoins },
-                Recipient = new UserGetModel { FullName = dbModel.Recipient.FullName, Id = dbModel.Recipient.Id, PwCoins = dbModel.Recipient.PwCoins },
+                Sender = new UserGetModel { FullName = dbModel.Sender.FullName, Id = dbModel.Sender.Id, PwCoins = dbModel.Sender.PwCoins, UserName = dbModel.Sender.UserName },
+                Recipient = new UserGetModel { FullName = dbModel.Recipient.FullName, Id = dbModel.Recipient.Id, PwCoins = dbModel.Recipient.PwCoins, UserName = dbModel.Recipient.UserName },
                 TransactionDate = dbModel.TransactionDate
-            }).ToListAsync();
+            }).Where(t => t.Recipient.Id == currentUser.Id || t.Sender.Id == currentUser.Id).ToListAsync();//only current user transactions
 
             if (items != null && items.Any())
             {
@@ -85,28 +87,29 @@ namespace SharpDevTest.Services.Services
                 {
                     var dbTransaction = new TransactionDbModel
                     {
+                        Id=Guid.NewGuid(),
                         SenderId = transaction.SenderId.ToString(),
                         RecipientId = transaction.RecipientId.ToString(),
                         PwAmount = transaction.PwAmount
                     };
 
-                    var sender = DbContext.Set<TransactionDbModel>().FirstOrDefault(u => u.Id.ToString().Equals(dbTransaction.SenderId, StringComparison.InvariantCultureIgnoreCase));
-                    var recipient = DbContext.Set<TransactionDbModel>().FirstOrDefault(u => u.Id.ToString().Equals(dbTransaction.RecipientId, StringComparison.InvariantCultureIgnoreCase));
+                    var sender = DbContext.Set<ApplicationUser>().FirstOrDefault(u => u.Id.Equals(dbTransaction.SenderId, StringComparison.InvariantCultureIgnoreCase));
+                    var recipient = DbContext.Set<ApplicationUser>().FirstOrDefault(u => u.Id.Equals(dbTransaction.RecipientId, StringComparison.InvariantCultureIgnoreCase));
 
                     if (sender == null || recipient == null)
                     {
                         throw new Exception("Incorrect sender/recipient.");
                     }
 
-                    if (sender.PwAmount<dbTransaction.PwAmount)
+                    if (sender.PwCoins < dbTransaction.PwAmount)
                     {
                         throw new Exception("Not enough PW!");
                     }
 
-                    sender.PwAmount = sender.PwAmount - dbTransaction.PwAmount;
-                    recipient.PwAmount = sender.PwAmount + dbTransaction.PwAmount;
+                    sender.PwCoins = sender.PwCoins - dbTransaction.PwAmount;
+                    recipient.PwCoins = recipient.PwCoins + dbTransaction.PwAmount;
 
-                    
+
                     DbContext.Set<TransactionDbModel>().Add(dbTransaction);
 
 
@@ -135,6 +138,8 @@ namespace SharpDevTest.Services.Services
             {
                 return new UserGetModel
                 {
+                    UserName = res.UserName,
+                    Id = res.Id,
                     FullName = res.FullName,
                     PwCoins = res.PwCoins
                 };
@@ -150,6 +155,8 @@ namespace SharpDevTest.Services.Services
             {
                 return new UserGetModel
                 {
+                    UserName = res.UserName,
+                    Id = res.Id,
                     FullName = res.FullName,
                     PwCoins = res.PwCoins
                 };
@@ -171,6 +178,7 @@ namespace SharpDevTest.Services.Services
 
             var items = await query.OrderByDescending(t => t.Id).Select(dbModel => new UserGetModel
             {
+                UserName = dbModel.UserName,
                 Id = dbModel.Id,
                 PwCoins = dbModel.PwCoins,
                 FullName = dbModel.FullName

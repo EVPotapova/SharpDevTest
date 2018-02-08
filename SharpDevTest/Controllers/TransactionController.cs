@@ -25,7 +25,7 @@ namespace SharpDevTest.Controllers
         {
             try
             {
-                return await PwService.GetTransactionsListAsync(filter);
+                return await PwService.GetTransactionsListAsync(filter, User.Identity.Name);
             }
             catch (Exception ex)
             {
@@ -41,6 +41,8 @@ namespace SharpDevTest.Controllers
             try
             {
                 res = await PwService.GetTransactionByIdAsync(id);
+                if (!res.Sender.UserName.Equals(User.Identity.Name) || !res.Recipient.UserName.Equals(User.Identity.Name))//only current user transaction
+                    throw CreateThrow4Xx(HttpStatusCode.Forbidden);
             }
             catch (Exception ex)
             {
