@@ -42,7 +42,7 @@ namespace SharpDevTest.Controllers
         {
             string userName = User.Identity.GetUserName();
 
-            var res = ApplicationDbContext.Users.FirstOrDefault(u => u.UserName.Equals(User.Identity.Name, StringComparison.InvariantCultureIgnoreCase)); ;
+            var res = await ApplicationDbContext.Users.FirstOrDefaultAsync(u => u.UserName.Equals(User.Identity.Name, StringComparison.InvariantCultureIgnoreCase));
             if (res == null)
                 throw CreateThrow4Xx(HttpStatusCode.NotFound, "User is not found.");
 

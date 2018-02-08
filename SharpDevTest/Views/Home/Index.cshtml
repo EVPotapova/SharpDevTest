@@ -17,7 +17,12 @@
 <div class="transactionPost" style="display:none;">
     <h3>Новая транзакция</h3>
     <label>Введите имя получателя</label><br />
-    <input type="text" id="recipientName" /> <br /><br />
+    <input type="text" id="recipientName" list="recipientNames" /> <br /><br />
+
+    <datalist id="recipientNames">
+        <option value="Test">
+        <option value="Test2">
+    </datalist>
     <label>Введите количество PW</label><br />
     <input type="number" min="0" value="0" id="pwAmount" /><br /><br />
     <input type="submit" id="submitTransaction" value="Подтвердить отправку PW" />
@@ -40,6 +45,32 @@
         "use strict";
         $(function () {
 
+            $('#recipientName').change(function () {
+
+                $('#recipientNames').empty();
+
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/Account/Users?fullName=' + ($('#recipientName').val()),
+                    beforeSend: function (xhr) {
+
+                        //var token = sessionStorage.getItem(tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + tokenKey);
+                    }
+                }).success(function (data) {
+
+                    for (var i = 0; i < data.TotalItemsCount; i++) {
+
+                        $('#recipientNames').append("<option value='" + data.Items[i].FullName + "'>");
+                    }
+
+
+                }).fail(function (data) {
+                    alert(data.responseText);
+                });
+
+
+            });
 
             $('#submit').click(function (e) {
                 e.preventDefault();
@@ -138,13 +169,13 @@
                     }
                 }).success(function (data) {
                     alert("Перевод прошел успешно.");
+                    $("#pwAmount").val("0");
+                    $("#recipientName").val("");
                 }).fail(function (data) {
                     alert(data.responseText);
-                    });
+                });
 
 
-                $('.pwAmount').text(0);
-                $('.recipientName').text('');
 
                 $.ajax({
                     type: 'GET',
