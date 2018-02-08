@@ -1,21 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using SharpDevTest.Models;
-using SharpDevTest.Services.Interfaces;
 using SharpDevTest.Models.Request;
 using SharpDevTest.Models.Response;
 using System.Net;
 using SharpDevTest.Models.Filters;
+using System.Data.Entity;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace SharpDevTest.Controllers
 {
@@ -23,35 +21,14 @@ namespace SharpDevTest.Controllers
     [RoutePrefix("api/Account")]
     public class AccountController : BaseApiController
     {
-        private ApplicationUserManager _userManager;
-        private IPwAccountService PwAccountService;
 
-
-
-        public AccountController(ApplicationUserManager userManager, IPwAccountService pwAccountService)
-        {
-            UserManager = userManager;
-            PwAccountService = pwAccountService;
-        }
-
-        public ApplicationUserManager UserManager
-        {
-            get
-            {
-                return _userManager ?? Request.GetOwinContext().GetUserManager<ApplicationUserManager>();
-            }
-            private set
-            {
-                _userManager = value;
-            }
-        }
 
         [Route("Users")]
         public async Task<UserGetListModel> GetUserList([FromUri]UserFilter filter)
         {
             try
             {
-                return await PwAccountService.GetUsersByFilter(filter);
+                return await GetUsersByFilter(filter);
             }
             catch (Exception ex)
             {
@@ -65,11 +42,17 @@ namespace SharpDevTest.Controllers
         {
             string userName = User.Identity.GetUserName();
 
-            var res = await PwAccountService.GetUserByUsername(userName);
+            var res = ApplicationDbContext.Users.FirstOrDefault(u => u.UserName.Equals(User.Identity.Name, StringComparison.InvariantCultureIgnoreCase)); ;
             if (res == null)
                 throw CreateThrow4Xx(HttpStatusCode.NotFound, "User is not found.");
 
-            return res;
+            return new UserGetModel
+            {
+                Id = res.Id,
+                FullName = res.FullName,
+                PwCoins = res.PwCoins,
+                UserName = res.UserName
+            };
         }
 
         // POST api/Account/Logout
@@ -107,16 +90,63 @@ namespace SharpDevTest.Controllers
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && _userManager != null)
+            if (disposing && UserManager != null)
             {
-                _userManager.Dispose();
-                _userManager = null;
+                UserManager.Dispose();
             }
 
             base.Dispose(disposing);
         }
 
         #region Helpers
+
+
+        private async Task<UserGetModel> GetUserById(string id)
+        {
+            ApplicationUser res = await ApplicationDbContext.Users.FirstOrDefaultAsync(u => u.Id.Equals(id, StringComparison.InvariantCultureIgnoreCase));
+            if (res != null)
+            {
+                return new UserGetModel
+                {
+                    UserName = res.UserName,
+                    Id = res.Id,
+                    FullName = res.FullName,
+                    PwCoins = res.PwCoins
+                };
+            }
+            return null;
+        }
+        private async Task<UserGetListModel> GetUsersByFilter(UserFilter filter)
+        {
+            if (filter == null)
+                filter = new UserFilter();
+
+            IQueryable<ApplicationUser> query = ApplicationDbContext.Users;
+
+            if (filter.FullName != null)
+            {
+                query = query.Where(t => t.FullName.Contains(filter.FullName));
+            }
+
+
+            var items = await query.OrderByDescending(t => t.Id).Select(dbModel => new UserGetModel
+            {
+                UserName = dbModel.UserName,
+                Id = dbModel.Id,
+                PwCoins = dbModel.PwCoins,
+                FullName = dbModel.FullName
+            }).ToListAsync();
+
+            if (items != null && items.Any())
+            {
+                return new UserGetListModel
+                {
+                    TotalItemsCount = items.Count,
+                    Items = items
+                };
+            }
+            return new UserGetListModel { TotalItemsCount = 0, Items = new List<UserGetModel>() };//Empty result
+        }
 
         private IAuthenticationManager Authentication
         {

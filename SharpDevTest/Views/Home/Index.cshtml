@@ -1,24 +1,170 @@
-﻿<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS, and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+﻿
+<div class="userInfo" style="display:none;">
+    <p>Имя: <span class="fullName"></span></p>
+    <p>PW: <span class="pwCoins"></span></p>
+    <input type="button" value="Выйти" id="logOut" />
 </div>
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>ASP.NET Web API is a framework that makes it easy to build HTTP services that reach
-        a broad range of clients, including browsers and mobile devices. ASP.NET Web API
-        is an ideal platform for building RESTful applications on the .NET Framework.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301870">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301871">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301872">Learn more &raquo;</a></p>
-    </div>
+
+<div class="loginForm">
+    <h3>Вход на сайт</h3>
+    <label>Введите email</label><br />
+    <input type="email" id="emailLogin" /> <br /><br />
+    <label>Введите пароль</label><br />
+    <input type="password" id="passwordLogin" /><br /><br />
+    <input type="submit" id="submitLogin" value="Логин" />
 </div>
+
+<div class="transactionPost" style="display:none;">
+    <h3>Новая транзакция</h3>
+    <label>Введите имя получателя</label><br />
+    <input type="text" id="recipientName" /> <br /><br />
+    <label>Введите количество PW</label><br />
+    <input type="number" min="0" value="0" id="pwAmount" /><br /><br />
+    <input type="submit" id="submitTransaction" value="Подтвердить отправку PW" />
+</div>
+
+
+<div>
+    <label>Введите email</label><br />
+    <input type="email" id="email" /> <br /><br />
+    <label>Введите полное имя</label><br />
+    <input type="text" id="fullName" /> <br /><br />
+    <label>Введите пароль</label><br />
+    <input type="password" id="password" /><br /><br />
+    <label>Подтвердите пароль</label><br />
+    <input type="password" id="confirmpassword" /><br /><br />
+    <input type="submit" id="submit" value="Регистрация" />
+</div>
+@section scripts{
+    <script type="text/javascript">
+        "use strict";
+        $(function () {
+
+
+            $('#submit').click(function (e) {
+                e.preventDefault();
+                var data = {
+                    Fullname: $('#fullName').val(),
+                    Email: $('#email').val(),
+                    Password: $('#password').val(),
+                    ConfirmPassword: $('#confirmpassword').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/Account/Register',
+                    contentType: 'application/json; charset=utf-8',
+                    data: JSON.stringify(data)
+                }).success(function (data) {
+                    alert("Вы успешно зарегистрировались.");
+                }).fail(function (data) {
+
+                    alert(data.Text);//TODO: Not full json, use response
+                });
+            });
+
+            //...........................
+
+            var tokenKey = "pumYy3VroxL1Dv_UENxwxxz7BBfB7acMUwIL7kwZ6Q2aaOO7Hp9Y2sb7T0PmCLN7jezpe1AixDaYKGpVEsLch2agzQilCPj8o1QfHO667X6LfZY4IPD0AO0mO-1pni0EpS87gMgXIKjGH6pWn-urQqP0Rmk1gxM7046HjN6oUJI6NaTQ1wUNHIW3PMYVAFVfcYW09tIWgHZZzinC1_Yxr-sUqjkfVjSfteWjnCD9uKmi-9DLCV33_rUX0xKm0KvRZ-Clzs7ddRp5LNit8M3ly8T72NuxT0U4WY5RYd20Dv3fKtY5NR35MRiVWv5_26E4yS0YO7ad0X9ncWGqtJcuj6seTCCs-ZKwUuN0jROwVrQ-eOeB92OOmQ86vvfBJNWCIUzGiuEjQSMdv3AekYlayX2K6ncjXFJHsBruyj8RUHwsy1TG0uhpaG4sam8QnBm-4YosmTMnuEFGHr2Hu9jd5ABqEPvMXeYgvE9H9hGbRykyo8kb3KSkXzzkYLkgyWhv";
+            $('#submitLogin').click(function (e) {
+                e.preventDefault();
+                var loginData = {
+                    grant_type: 'password',
+                    username: $('#emailLogin').val(),
+                    password: $('#passwordLogin').val()
+                };
+
+                //$.ajax({
+                //    type: 'POST',
+                //    url: '/Token',
+                //    data: loginData
+                //}).success(function (data) {
+                //    // сохраняем в хранилище sessionStorage токен доступа
+                //    sessionStorage.setItem(tokenKey, data["access_token"]);
+                //    console.log(data.access_token);
+                //}).fail(function (data) {
+                //    alert('При логине возникла ошибка');
+                //});
+
+
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/Account/CurrentUser',
+                    beforeSend: function (xhr) {
+
+                        //var token = sessionStorage.getItem(tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + tokenKey);
+                    }
+                }).success(function (data) {
+                    $('.fullName').text(data.FullName);
+                    $('.pwCoins').text(data.PwCoins);
+                    $('.transactionPost').css('display', 'block');
+                    $('.userInfo').css('display', 'block');
+                    $('.loginForm').css('display', 'none');
+                }).fail(function (data) {
+                    alert(data.responseText);
+                });
+            });
+
+
+            $('#logOut').click(function (e) {
+                e.preventDefault();
+                sessionStorage.removeItem(tokenKey);
+                $('.loginForm').css('display', 'block');
+                $('.userInfo').css('display', 'none');
+                $('.transactionPost').css('display', 'none');
+            });
+
+
+
+            //TODO: функция подтягивания динамически списка пользователей по фильру при изменении контента в форме реципиент нейм
+
+            $('#submitTransaction').click(function (e) {
+                e.preventDefault();
+                var transactionData = {
+                    pwAmount: $('#pwAmount').val(),
+                    recipientName: $('#recipientName').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/Transaction',
+                    contentType: 'application/json; charset=utf-8',
+                    data: JSON.stringify(transactionData),
+                    beforeSend: function (xhr) {
+
+                        //var token = sessionStorage.getItem(tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + tokenKey);
+                    }
+                }).success(function (data) {
+                    alert("Перевод прошел успешно.");
+                }).fail(function (data) {
+                    alert(data.responseText);
+                    });
+
+
+                $('.pwAmount').text(0);
+                $('.recipientName').text('');
+
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/Account/CurrentUser',
+                    beforeSend: function (xhr) {
+
+                        //var token = sessionStorage.getItem(tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + tokenKey);
+                    }
+                }).success(function (data) {
+                    $('.fullName').text(data.FullName);
+                    $('.pwCoins').text(data.PwCoins);
+                    $('.transactionPost').css('display', 'block');
+                    $('.userInfo').css('display', 'block');
+                    $('.loginForm').css('display', 'none');
+                }).fail(function (data) {
+                    alert(data.responseText);
+                });
+
+            });
+        })
+    </script>
+}

@@ -342,10 +342,6 @@
       <Project>{576722b1-8231-4bbe-8192-a4e7d8c2de89}</Project>
       <Name>SharpDevTest.Models</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SharpDevTest.Services\SharpDevTest.Services.csproj">
-      <Project>{90A16E92-F7E1-4197-92CD-1A871358BD18}</Project>
-      <Name>SharpDevTest.Services</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201802060925377_TransactionsTable.resx">

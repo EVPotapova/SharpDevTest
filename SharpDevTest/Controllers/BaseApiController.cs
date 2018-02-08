@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNet.Identity.Owin;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -11,6 +12,13 @@ namespace SharpDevTest.Controllers
     public abstract class BaseApiController : ApiController
     {
 
+        private ApplicationUserManager _appUserManager;
+        private ApplicationDbContext _ApplicationDbContext;
+
+
+        protected ApplicationDbContext ApplicationDbContext
+            => _ApplicationDbContext ?? (_ApplicationDbContext = Request.GetOwinContext().Get<ApplicationDbContext>());
+        protected ApplicationUserManager UserManager => _appUserManager ?? (_appUserManager = Request.GetOwinContext().GetUserManager<ApplicationUserManager>());
 
         protected HttpResponseException CreateThrow4Xx(HttpStatusCode code, string message = null)
         {
