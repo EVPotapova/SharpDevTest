@@ -177,13 +177,11 @@ namespace SharpDevTest.Controllers
                 }
             }
         }
-
         private async Task<decimal> GetUserTotalAsync(string userName)
         {
             return await ApplicationDbContext.Users.Where(u => u.Email.Equals(userName, StringComparison.InvariantCultureIgnoreCase)).Select(u => u.PwCoins).FirstOrDefaultAsync();
         }
-
-
+        
         #endregion
 
     }

@@ -28,6 +28,15 @@
     <input type="submit" id="submitTransaction" value="Подтвердить отправку PW" />
 </div>
 
+<div class="transactionsList" style="display:none;">
+    <table style="width:100%">
+        <tr>
+            <th>Date</th>
+            <th>Recipient</th>
+            <th>Amount</th>
+        </tr>
+    </table>
+</div>
 
 <div>
     <label>Введите email</label><br />
@@ -54,7 +63,7 @@
                     url: '/api/Account/Users?fullName=' + ($('#recipientName').val()),
                     beforeSend: function (xhr) {
 
-                        //var token = sessionStorage.getItem(tokenKey);
+                        var token = localStorage.getItem(tokenKey);
                         xhr.setRequestHeader("Authorization", "Bearer " + tokenKey);
                     }
                 }).success(function (data) {
@@ -96,7 +105,7 @@
 
             //...........................
 
-            var tokenKey = "pumYy3VroxL1Dv_UENxwxxz7BBfB7acMUwIL7kwZ6Q2aaOO7Hp9Y2sb7T0PmCLN7jezpe1AixDaYKGpVEsLch2agzQilCPj8o1QfHO667X6LfZY4IPD0AO0mO-1pni0EpS87gMgXIKjGH6pWn-urQqP0Rmk1gxM7046HjN6oUJI6NaTQ1wUNHIW3PMYVAFVfcYW09tIWgHZZzinC1_Yxr-sUqjkfVjSfteWjnCD9uKmi-9DLCV33_rUX0xKm0KvRZ-Clzs7ddRp5LNit8M3ly8T72NuxT0U4WY5RYd20Dv3fKtY5NR35MRiVWv5_26E4yS0YO7ad0X9ncWGqtJcuj6seTCCs-ZKwUuN0jROwVrQ-eOeB92OOmQ86vvfBJNWCIUzGiuEjQSMdv3AekYlayX2K6ncjXFJHsBruyj8RUHwsy1TG0uhpaG4sam8QnBm-4YosmTMnuEFGHr2Hu9jd5ABqEPvMXeYgvE9H9hGbRykyo8kb3KSkXzzkYLkgyWhv";
+            var tokenKey = "accessToken";
             $('#submitLogin').click(function (e) {
                 e.preventDefault();
                 var loginData = {
@@ -105,17 +114,18 @@
                     password: $('#passwordLogin').val()
                 };
 
-                //$.ajax({
-                //    type: 'POST',
-                //    url: '/Token',
-                //    data: loginData
-                //}).success(function (data) {
-                //    // сохраняем в хранилище sessionStorage токен доступа
-                //    sessionStorage.setItem(tokenKey, data["access_token"]);
-                //    console.log(data.access_token);
-                //}).fail(function (data) {
-                //    alert('При логине возникла ошибка');
-                //});
+                $.ajax({
+                    type: 'POST',
+                    url: '/Token',
+                    data: loginData
+                }).success(function (data) {
+                    // сохраняем в хранилище localStorage токен доступа
+                    
+                    localStorage.setItem(tokenKey, data.access_token);
+                    console.log(data.access_token);
+                }).fail(function (data) {
+                    alert('При логине возникла ошибка');
+                });
 
 
                 $.ajax({
@@ -123,14 +133,15 @@
                     url: '/api/Account/CurrentUser',
                     beforeSend: function (xhr) {
 
-                        //var token = sessionStorage.getItem(tokenKey);
-                        xhr.setRequestHeader("Authorization", "Bearer " + tokenKey);
+                        var token = localStorage.getItem(tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + token);
                     }
                 }).success(function (data) {
                     $('.fullName').text(data.FullName);
                     $('.pwCoins').text(data.PwCoins);
                     $('.transactionPost').css('display', 'block');
                     $('.userInfo').css('display', 'block');
+                    $('.transactionsList').css('display', 'block');
                     $('.loginForm').css('display', 'none');
                 }).fail(function (data) {
                     alert(data.responseText);
@@ -140,16 +151,14 @@
 
             $('#logOut').click(function (e) {
                 e.preventDefault();
-                sessionStorage.removeItem(tokenKey);
+                localStorage.removeItem(tokenKey);
                 $('.loginForm').css('display', 'block');
                 $('.userInfo').css('display', 'none');
                 $('.transactionPost').css('display', 'none');
+                $('.transactionsList').css('display', 'none');
             });
 
-
-
-            //TODO: функция подтягивания динамически списка пользователей по фильру при изменении контента в форме реципиент нейм
-
+            
             $('#submitTransaction').click(function (e) {
                 e.preventDefault();
                 var transactionData = {
@@ -164,8 +173,8 @@
                     data: JSON.stringify(transactionData),
                     beforeSend: function (xhr) {
 
-                        //var token = sessionStorage.getItem(tokenKey);
-                        xhr.setRequestHeader("Authorization", "Bearer " + tokenKey);
+                        var token = localStorage.getItem(tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + token);
                     }
                 }).success(function (data) {
                     alert("Перевод прошел успешно.");
@@ -182,8 +191,8 @@
                     url: '/api/Account/CurrentUser',
                     beforeSend: function (xhr) {
 
-                        //var token = sessionStorage.getItem(tokenKey);
-                        xhr.setRequestHeader("Authorization", "Bearer " + tokenKey);
+                        var token = localStorage.getItem(tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + token);
                     }
                 }).success(function (data) {
                     $('.fullName').text(data.FullName);
