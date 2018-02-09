@@ -1,7 +1,8 @@
 ﻿
 <div class="userInfo" style="display:none;">
-    <p>Имя: <span class="fullName"></span></p>
-    <p>PW: <span class="pwCoins"></span></p>
+    <h3>Пользователь</h3>
+    <p><b>Имя: </b><span class="fullName"></span></p>
+    <p><b>PW: </b><span class="pwCoins"></span></p>
     <input type="button" value="Выйти" id="logOut" />
 </div>
 
@@ -19,26 +20,29 @@
     <label>Введите имя получателя</label><br />
     <input type="text" id="recipientName" list="recipientNames" /> <br /><br />
 
-    <datalist id="recipientNames">
-        <option value="Test">
-        <option value="Test2">
-    </datalist>
+    <datalist id="recipientNames"></datalist>
     <label>Введите количество PW</label><br />
     <input type="number" min="0" value="0" id="pwAmount" /><br /><br />
     <input type="submit" id="submitTransaction" value="Подтвердить отправку PW" />
 </div>
 
 <div class="transactionsList" style="display:none;">
-    <table style="width:100%">
-        <tr>
-            <th>Date</th>
-            <th>Recipient</th>
-            <th>Amount</th>
-        </tr>
+
+    <h3>Список завершенных транзакций</h3>
+    <table id="tranTable" style="width:100%">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Recipient</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
     </table>
 </div>
 
 <div>
+    <h3>Регистрация нового пользователя</h3>
     <label>Введите email</label><br />
     <input type="email" id="email" /> <br /><br />
     <label>Введите полное имя</label><br />
@@ -51,8 +55,57 @@
 </div>
 @section scripts{
     <script type="text/javascript">
-        "use strict";
+
+
         $(function () {
+
+            var tokenKey = "accessToken";
+
+            var refreshTransactionsList = function () {
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/Transaction',
+                    beforeSend: function (xhr) {
+
+                        var token = localStorage.getItem(tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + token);
+                    }
+                }).success(function (data) {
+
+                    $('#tranTable > tbody:last-child').empty();
+                    for (var i = 0; i < data.TotalItemsCount; i++) {
+                        var date = new Date(data.Items[i].TransactionDate);
+                        $('#tranTable > tbody:last-child').append('<tr><td>' + date.toString("yyyy-MM-dd HH:mm:ss") + '</td><td>' + data.Items[i].Recipient.FullName + '</td><td>' + data.Items[i].PwAmount + '</td></tr>');
+
+                    }
+
+                }).fail(function (data) {
+                    alert(data.responseText);
+                });
+                return this;
+            };
+
+            var refreshUserData = function () {
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/Account/CurrentUser',
+                    beforeSend: function (xhr) {
+
+                        var token = localStorage.getItem(tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + token);
+                    }
+                }).success(function (data) {
+                    $('.fullName').text(data.FullName);
+                    $('.pwCoins').text(data.PwCoins);
+                    $('.transactionPost').css('display', 'block');
+                    $('.userInfo').css('display', 'block');
+                    $('.transactionsList').css('display', 'block');
+                    $('.loginForm').css('display', 'none');
+                }).fail(function (data) {
+                    alert(data.responseText);
+                });
+                return this;
+            };
 
             $('#recipientName').change(function () {
 
@@ -64,7 +117,7 @@
                     beforeSend: function (xhr) {
 
                         var token = localStorage.getItem(tokenKey);
-                        xhr.setRequestHeader("Authorization", "Bearer " + tokenKey);
+                        xhr.setRequestHeader("Authorization", "Bearer " + token);
                     }
                 }).success(function (data) {
 
@@ -103,9 +156,6 @@
                 });
             });
 
-            //...........................
-
-            var tokenKey = "accessToken";
             $('#submitLogin').click(function (e) {
                 e.preventDefault();
                 var loginData = {
@@ -120,32 +170,17 @@
                     data: loginData
                 }).success(function (data) {
                     // сохраняем в хранилище localStorage токен доступа
-                    
+                    localStorage.clear();
                     localStorage.setItem(tokenKey, data.access_token);
                     console.log(data.access_token);
+                    refreshUserData();
+
+                    refreshTransactionsList();
                 }).fail(function (data) {
                     alert('При логине возникла ошибка');
                 });
 
 
-                $.ajax({
-                    type: 'GET',
-                    url: '/api/Account/CurrentUser',
-                    beforeSend: function (xhr) {
-
-                        var token = localStorage.getItem(tokenKey);
-                        xhr.setRequestHeader("Authorization", "Bearer " + token);
-                    }
-                }).success(function (data) {
-                    $('.fullName').text(data.FullName);
-                    $('.pwCoins').text(data.PwCoins);
-                    $('.transactionPost').css('display', 'block');
-                    $('.userInfo').css('display', 'block');
-                    $('.transactionsList').css('display', 'block');
-                    $('.loginForm').css('display', 'none');
-                }).fail(function (data) {
-                    alert(data.responseText);
-                });
             });
 
 
@@ -158,7 +193,7 @@
                 $('.transactionsList').css('display', 'none');
             });
 
-            
+
             $('#submitTransaction').click(function (e) {
                 e.preventDefault();
                 var transactionData = {
@@ -180,29 +215,16 @@
                     alert("Перевод прошел успешно.");
                     $("#pwAmount").val("0");
                     $("#recipientName").val("");
+                    refreshUserData();
+
+
+                    refreshTransactionsList();
                 }).fail(function (data) {
                     alert(data.responseText);
                 });
 
 
 
-                $.ajax({
-                    type: 'GET',
-                    url: '/api/Account/CurrentUser',
-                    beforeSend: function (xhr) {
-
-                        var token = localStorage.getItem(tokenKey);
-                        xhr.setRequestHeader("Authorization", "Bearer " + token);
-                    }
-                }).success(function (data) {
-                    $('.fullName').text(data.FullName);
-                    $('.pwCoins').text(data.PwCoins);
-                    $('.transactionPost').css('display', 'block');
-                    $('.userInfo').css('display', 'block');
-                    $('.loginForm').css('display', 'none');
-                }).fail(function (data) {
-                    alert(data.responseText);
-                });
 
             });
         })

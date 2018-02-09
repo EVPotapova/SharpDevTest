@@ -40,7 +40,7 @@ namespace SharpDevTest.Controllers
             try
             {
                 res = await GetTransactionByIdAsync(id);
-                if (!res.Sender.UserName.Equals(User.Identity.Name) || !res.Recipient.UserName.Equals(User.Identity.Name))//only current user transaction
+                if (!res.Sender.UserName.Equals(User.Identity.Name))//only current user transaction
                     throw CreateThrow4Xx(HttpStatusCode.Forbidden);
             }
             catch (Exception ex)
@@ -116,7 +116,7 @@ namespace SharpDevTest.Controllers
                 Sender = new UserGetModel { FullName = dbModel.Sender.FullName, Id = dbModel.Sender.Id, PwCoins = dbModel.Sender.PwCoins, UserName = dbModel.Sender.UserName },
                 Recipient = new UserGetModel { FullName = dbModel.Recipient.FullName, Id = dbModel.Recipient.Id, PwCoins = dbModel.Recipient.PwCoins, UserName = dbModel.Recipient.UserName },
                 TransactionDate = dbModel.TransactionDate
-            }).Where(t => t.Recipient.Id == currentUser.Id || t.Sender.Id == currentUser.Id).ToListAsync();//only current user transactions
+            }).Where(t => t.Sender.Id == currentUser.Id).ToListAsync();//only current user transactions
 
             if (items != null && items.Any())
             {
