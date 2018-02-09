@@ -17,8 +17,6 @@ namespace SharpDevTest.Controllers
     [RoutePrefix("transaction")]
     public class TransactionController : BaseApiController
     {
-
-
         [HttpGet]
         public async Task<TransactionGetListModel> GetListAsync([FromUri]TransactionFilter filter)
         {
@@ -34,6 +32,7 @@ namespace SharpDevTest.Controllers
 
         [HttpGet]
         [Route("{id}")]
+        //Для реализации презаполнения полей при создании новой транзакции на основе старой
         public async Task<TransactionGetModel> GetAsync(Guid id)
         {
             TransactionGetModel res = null;
@@ -84,7 +83,7 @@ namespace SharpDevTest.Controllers
                 Recipient = new UserGetModel { FullName = dbModel.Recipient.FullName, Id = dbModel.Recipient.Id, PwCoins = dbModel.Recipient.PwCoins },
                 TransactionDate = dbModel.TransactionDate
 
-            };//TODO: Здесь можно в большем проекте использовать Automapper
+            };//TODO: Здесь можно в большем проекте использовать Automapper (как и при других конвертах)
         }
         private async Task<TransactionGetListModel> GetTransactionsListAsync(TransactionFilter filter)
         {
@@ -105,7 +104,6 @@ namespace SharpDevTest.Controllers
             }
             if (filter.PwAmount != null)
             {
-
                 query = query.Where(t => t.PwAmount == filter.PwAmount);
             }
 
@@ -181,7 +179,7 @@ namespace SharpDevTest.Controllers
         {
             return await ApplicationDbContext.Users.Where(u => u.Email.Equals(userName, StringComparison.InvariantCultureIgnoreCase)).Select(u => u.PwCoins).FirstOrDefaultAsync();
         }
-        
+
         #endregion
 
     }

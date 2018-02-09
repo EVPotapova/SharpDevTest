@@ -22,7 +22,6 @@ namespace SharpDevTest.Controllers
     public class AccountController : BaseApiController
     {
 
-
         [Route("Users")]
         public async Task<UserGetListModel> GetUserList([FromUri]UserFilter filter)
         {
@@ -54,16 +53,14 @@ namespace SharpDevTest.Controllers
                 UserName = res.UserName
             };
         }
-
-        // POST api/Account/Logout
+        
         [Route("Logout")]
         public IHttpActionResult Logout()
         {
             Authentication.SignOut(CookieAuthenticationDefaults.AuthenticationType);
             return Ok();
         }
-
-        // POST api/Account/Register
+        
         [AllowAnonymous]
         [HttpPost]
         [Route("Register")]
@@ -74,7 +71,7 @@ namespace SharpDevTest.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = new ApplicationUser() { UserName = model.Email, FullName = model.FullName, Email = model.Email, PwCoins = 500M }; //TODO: unhardcode start value
+            var user = new ApplicationUser() { UserName = model.Email, FullName = model.FullName, Email = model.Email, PwCoins = 500M }; //TODO: unhardcode start value (to config)
 
             IdentityResult result = await UserManager.CreateAsync(user, model.Password);
 
@@ -85,9 +82,7 @@ namespace SharpDevTest.Controllers
 
             return Ok();
         }
-
-
-
+        
         protected override void Dispose(bool disposing)
         {
             if (disposing && UserManager != null)
@@ -99,8 +94,7 @@ namespace SharpDevTest.Controllers
         }
 
         #region Helpers
-
-
+        
         private async Task<UserGetModel> GetUserById(string id)
         {
             ApplicationUser res = await ApplicationDbContext.Users.FirstOrDefaultAsync(u => u.Id.Equals(id, StringComparison.InvariantCultureIgnoreCase));
